@@ -25,6 +25,9 @@ func (c *App) handleAddProduct() {
 	fmt.Print("Nama Baju: ")
 	c.scanner.Scan()
 	name := c.scanner.Text()
+	fmt.Print("Warna: ")
+	c.scanner.Scan()
+	description := c.scanner.Text()
 	fmt.Print("Ukuran (S/M/L/XL): ")
 	c.scanner.Scan()
 	size := c.scanner.Text()
@@ -38,7 +41,7 @@ func (c *App) handleAddProduct() {
 	c.scanner.Scan()
 	stock, _ := strconv.Atoi(c.scanner.Text())
 
-	err := c.prodUC.AddProduct(domain.Product{CategoryID: catID, SKU: sku, Name: name, Size: size, Color: color, Price: price, Stock: stock})
+	err := c.prodUC.AddProduct(domain.Product{CategoryID: catID, SKU: sku, Name: name, Description: description, Size: size, Color: color, Price: price, Stock: stock})
 	if err != nil {
 		fmt.Println("❌ Gagal:", err)
 	} else {

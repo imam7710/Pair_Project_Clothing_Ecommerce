@@ -59,8 +59,9 @@ func (c *App) mainMenu() {
 			fmt.Println("3. [Admin] Tambah Pakaian Baru")
 			fmt.Println("4. [Admin] Update Stok & Harga")
 			fmt.Println("5. [Admin] Hapus Pakaian")
+			fmt.Println("6. Laporan Sistem (Users, Stock, Orders)")
 		}
-		fmt.Println("6. Laporan Sistem (Users, Stock, Orders)")
+
 		fmt.Println("0. Keluar")
 		fmt.Print("Pilih menu: ")
 

@@ -9,6 +9,7 @@ type UserReportDTO struct {
 }
 
 type StockReportDTO struct {
+	Category    string `db:"category"`
 	SKU         string `db:"sku"`
 	Name        string `db:"name"`
 	Size        string `db:"size"`

@@ -20,8 +20,9 @@ func (c *App) handleReports() {
 	case "2":
 		stocks, _ := c.reportUC.GetStocks()
 		fmt.Println("\n--- STOCK REPORTS ---")
-		for _, s := range stocks {
-			fmt.Printf("[%s] SKU: %s | %s (%s) | Sisa Stok: %d\n", s.StatusStok, s.SKU, s.Name, s.Size, s.Stock)
+		for _, item := range stocks {
+			fmt.Printf("[%s] SKU: %s | Nama: %s | Kategori: %s | Ukuran: %s | Warna: %s | Stok: %d (%s)\n",
+				item.StatusStok, item.SKU, item.Name, item.Category, item.Size, item.Color, item.Stock, item.StatusStok)
 		}
 	case "3":
 		orders, _ := c.reportUC.GetOrders()
