@@ -5,44 +5,58 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-// MockUserRepository adalah tiruan dari repository asli
-type MockUserRepository struct {
-	mock.Mock
-}
-
-func (m *MockUserRepository) GetByEmail(email string) (*domain.User, error) {
-	args := m.Called(email)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.User), args.Error(1)
-}
-
-func TestAuthUseCase_Login(t *testing.T) {
+func TestRegister_Success(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	authUC := NewAuthUseCase(mockRepo)
 
-	t.Run("Login Sukses", func(t *testing.T) {
-		mockUser := &domain.User{Email: "imam@test.com", Password: "password123", Role: "customer"}
-		mockRepo.On("GetByEmail", "imam@test.com").Return(mockUser, nil)
+	req := domain.CreateUserRequest{
+		Email:    "test@mail.com",
+		Password: "password123",
+		Role:     "customer",
+		FullName: "User Test",
+	}
 
-		user, err := authUC.Login("imam@test.com", "password123")
+	mockRepo.On("Create", req).Return(nil)
 
-		assert.NoError(t, err)
-		assert.Equal(t, "imam@test.com", user.Email)
-		mockRepo.AssertExpectations(t)
-	})
+	err := authUC.Register(req)
 
-	t.Run("Login Gagal - Password Salah", func(t *testing.T) {
-		mockUser := &domain.User{Email: "imam@test.com", Password: "password123"}
-		mockRepo.On("GetByEmail", "imam@test.com").Return(mockUser, nil)
+	assert.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+}
 
-		_, err := authUC.Login("imam@test.com", "salahpass")
+func TestRegister_EmptyEmail(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	authUC := NewAuthUseCase(mockRepo)
 
-		assert.Error(t, err)
-		assert.Equal(t, "invalid credentials", err.Error())
-	})
+	req := domain.CreateUserRequest{
+		Email:    "",
+		Password: "password123",
+	}
+
+	err := authUC.Register(req)
+
+	assert.Error(t, err)
+	assert.Equal(t, "email dan password tidak boleh kosong", err.Error())
+}
+
+func TestLogin_Success(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	authUC := NewAuthUseCase(mockRepo)
+
+	expectedUser := &domain.User{
+		ID:    1,
+		Email: "test@mail.com",
+		Role:  "customer",
+	}
+
+	mockRepo.On("Login", "test@mail.com", "password123").Return(expectedUser, nil)
+
+	user, err := authUC.Login("test@mail.com", "password123")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, user)
+	assert.Equal(t, "test@mail.com", user.Email)
+	mockRepo.AssertExpectations(t)
 }

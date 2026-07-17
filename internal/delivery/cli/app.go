@@ -22,11 +22,31 @@ func NewApp(a domain.AuthUseCase, u domain.UserUseCase, p domain.ProductUseCase,
 	return &App{authUC: a, userUC: u, prodUC: p, orderUC: o, reportUC: r, scanner: bufio.NewScanner(os.Stdin)}
 }
 
-func (c *App) Start() {
-	fmt.Println("=== SISTEM CLOTHING E-COMMERCE CLI ===")
+func (c *App) Start() { // Atau Run() sesuai kode kamu
 	for c.user == nil {
-		c.loginScreen()
+		fmt.Println("\n=== CLOTHING E-COMMERCE ===")
+		fmt.Println("1. Login")
+		fmt.Println("2. Daftar Akun Baru (Register)")
+		fmt.Println("0. Keluar")
+		fmt.Print("Pilih menu: ")
+
+		c.scanner.Scan()
+		pilihan := strings.TrimSpace(c.scanner.Text())
+
+		switch pilihan {
+		case "1":
+			c.loginScreen() // Kalau sukses, c.user tidak nil lagi dan loop berhenti
+		case "2":
+			c.registerScreen() // Daftar ke database, pas selesai balik lagi ke menu ini buat login
+		case "0":
+			fmt.Println("Terima kasih!")
+			return
+		default:
+			fmt.Println("❌ Pilihan tidak valid.")
+		}
 	}
+
+	// --- MASUK KE MENU UTAMA (Katalog, Checkout, Laporan) ---
 	c.mainMenu()
 }
 
@@ -40,7 +60,7 @@ func (c *App) mainMenu() {
 			fmt.Println("4. [Admin] Update Stok & Harga")
 			fmt.Println("5. [Admin] Hapus Pakaian")
 		}
-		fmt.Println("6. [Mandatory] Laporan Sistem (Users, Stock, Orders)")
+		fmt.Println("6. Laporan Sistem (Users, Stock, Orders)")
 		fmt.Println("0. Keluar")
 		fmt.Print("Pilih menu: ")
 

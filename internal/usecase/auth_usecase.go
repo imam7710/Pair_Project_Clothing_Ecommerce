@@ -52,3 +52,13 @@ func (u *userUC) RemoveAccount(userID int) error {
 	}
 	return u.repo.Delete(userID)
 }
+
+func (u *authUC) Register(req domain.CreateUserRequest) error {
+	// 1. Validasi sederhana agar input tidak kosong
+	if req.Email == "" || req.Password == "" {
+		return errors.New("email dan password tidak boleh kosong")
+	}
+
+	// 2. Panggil fungsi Create dari user repository yang sudah kamu buat sebelumnya
+	return u.repo.Create(req)
+}

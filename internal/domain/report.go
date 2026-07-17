@@ -9,12 +9,13 @@ type UserReportDTO struct {
 }
 
 type StockReportDTO struct {
-	SKU        string `db:"sku"`
-	Name       string `db:"name"`
-	Size       string `db:"size"`
-	Color      string `db:"color"`
-	Stock      int    `db:"stock"`
-	StatusStok string `db:"status_stok"`
+	SKU         string `db:"sku"`
+	Name        string `db:"name"`
+	Size        string `db:"size"`
+	Color       string `db:"color"`
+	Description string `db:"description"`
+	Stock       int    `db:"stock"`
+	StatusStok  string `db:"status_stok"`
 }
 
 type OrderReportDTO struct {
@@ -22,6 +23,7 @@ type OrderReportDTO struct {
 	Pembeli        string  `db:"pembeli"`
 	TotalAmount    float64 `db:"total_amount"`
 	Status         string  `db:"status"`
+	PaymentMethod  string  `db:"payment_method"`
 	WaktuTransaksi string  `db:"waktu_transaksi"`
 }
 

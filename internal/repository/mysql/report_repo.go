@@ -35,7 +35,7 @@ func (r *reportRepo) GetStockReports() ([]domain.StockReportDTO, error) {
 	var list []domain.StockReportDTO
 	for rows.Next() {
 		var d domain.StockReportDTO
-		rows.Scan(&d.SKU, &d.Name, &d.Size, &d.Color, &d.Stock, &d.StatusStok)
+		rows.Scan(&d.SKU, &d.Name, &d.Description, &d.Size, &d.Color, &d.Stock, &d.StatusStok)
 		list = append(list, d)
 	}
 	return list, nil

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"Pair_Project_Clothing_Ecommerce/internal/domain"
 	"fmt"
 	"strings"
 )
@@ -22,4 +23,47 @@ func (c *App) loginScreen() {
 	}
 	c.user = user
 	fmt.Printf("✅ Berhasil Login! Selamat datang, %s (%s)\n", user.Email, user.Role)
+}
+
+func (c *App) registerScreen() {
+	fmt.Println("\n=== DAFTAR AKUN BARU ===")
+
+	fmt.Print("Email: ")
+	c.scanner.Scan()
+	email := strings.TrimSpace(c.scanner.Text())
+
+	fmt.Print("Password: ")
+	c.scanner.Scan()
+	password := strings.TrimSpace(c.scanner.Text())
+
+	fmt.Print("Nama Lengkap: ")
+	c.scanner.Scan()
+	fullName := strings.TrimSpace(c.scanner.Text())
+
+	fmt.Print("No. HP: ")
+	c.scanner.Scan()
+	phone := strings.TrimSpace(c.scanner.Text())
+
+	fmt.Print("Alamat: ")
+	c.scanner.Scan()
+	address := strings.TrimSpace(c.scanner.Text())
+
+	req := domain.CreateUserRequest{
+		Email:    email,
+		Password: password,
+		Role:     "customer",
+		FullName: fullName,
+		Phone:    phone,
+		Address:  address,
+	}
+
+	// Memanggil fungsi registrasi
+	err := c.authUC.Register(req)
+	if err != nil {
+		fmt.Println("❌ Gagal Mendaftar:", err.Error())
+		return
+	}
+
+	fmt.Println("✅ Registrasi Berhasil! Data sudah masuk ke MySQL.")
+	fmt.Println("👉 Silakan Login menggunakan akun yang baru kamu daftarkan.")
 }

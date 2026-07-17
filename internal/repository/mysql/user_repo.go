@@ -7,39 +7,78 @@ import (
 	"fmt"
 )
 
-type userRepo struct{ db *sql.DB }
+type userRepo struct {
+	db *sql.DB
+}
 
-func NewUserRepository(db *sql.DB) domain.UserRepository { return &userRepo{db: db} }
+func NewUserRepository(db *sql.DB) domain.UserRepository {
+	return &userRepo{db: db}
+}
 
 func (r *userRepo) Login(email, password string) (*domain.User, error) {
-	var u domain.User
-	err := r.db.QueryRow(`SELECT id, email, role FROM users WHERE email = ? AND password = ?`, email, password).
-		Scan(&u.ID, &u.Email, &u.Role)
+	var user domain.User
+
+	query := `
+		SELECT id, email, role
+		FROM users
+		WHERE email = ? AND password = ?
+	`
+
+	err := r.db.QueryRow(query, email, password).
+		Scan(&user.ID, &user.Email, &user.Role)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("email atau password salah")
 		}
 		return nil, err
 	}
-	return &u, nil
+
+	return &user, nil
 }
 
 func (r *userRepo) GetAll() ([]domain.UserReportDTO, error) {
-	query := `SELECT u.id, u.email, u.role, COALESCE(p.full_name, '-'), COALESCE(p.phone, '-') 
-	          FROM users u LEFT JOIN profiles p ON u.id = p.user_id ORDER BY u.id ASC`
+	query := `
+		SELECT
+			u.id,
+			u.email,
+			u.role,
+			COALESCE(p.full_name, '-'),
+			COALESCE(p.phone, '-')
+		FROM users u
+		LEFT JOIN profiles p
+			ON u.id = p.user_id
+		ORDER BY u.id
+	`
+
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var list []domain.UserReportDTO
+	users := []domain.UserReportDTO{}
+
 	for rows.Next() {
-		var u domain.UserReportDTO
-		rows.Scan(&u.ID, &u.Email, &u.Role, &u.FullName, &u.Phone)
-		list = append(list, u)
+		var user domain.UserReportDTO
+
+		if err := rows.Scan(
+			&user.ID,
+			&user.Email,
+			&user.Role,
+			&user.FullName,
+			&user.Phone,
+		); err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
 	}
-	return list, nil
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (r *userRepo) Create(req domain.CreateUserRequest) error {
@@ -47,45 +86,94 @@ func (r *userRepo) Create(req domain.CreateUserRequest) error {
 	if err != nil {
 		return err
 	}
+
 	defer tx.Rollback()
 
-	res, err := tx.Exec(`INSERT INTO users (email, password, role) VALUES (?, ?, ?)`, req.Email, req.Password, req.Role)
+	result, err := tx.Exec(
+		`
+		INSERT INTO users (email, password, role)
+		VALUES (?, ?, ?)
+		`,
+		req.Email,
+		req.Password,
+		req.Role,
+	)
 	if err != nil {
-		return fmt.Errorf("email sudah terdaftar atau error: %v", err)
+		return fmt.Errorf("gagal membuat user: %w", err)
 	}
 
-	newID64, _ := res.LastInsertId()
-	newID := int(newID64)
-
-	_, err = tx.Exec(`INSERT INTO profiles (user_id, full_name, phone, address) VALUES (?, ?, ?, ?)`,
-		newID, req.FullName, req.Phone, req.Address)
-	if err != nil {
-		return fmt.Errorf("gagal membuat profil: %v", err)
-	}
-
-	return tx.Commit()
-}
-
-func (r *userRepo) UpdateRole(userID int, newRole string) error {
-	res, err := r.db.Exec(`UPDATE users SET role = ? WHERE id = ?`, newRole, userID)
+	userID, err := result.LastInsertId()
 	if err != nil {
 		return err
 	}
-	affected, _ := res.RowsAffected()
-	if affected == 0 {
-		return errors.New("user ID tidak ditemukan")
+
+	_, err = tx.Exec(
+		`
+		INSERT INTO profiles (user_id, full_name, phone, address)
+		VALUES (?, ?, ?, ?)
+		`,
+		userID,
+		req.FullName,
+		req.Phone,
+		req.Address,
+	)
+	if err != nil {
+		return fmt.Errorf("gagal membuat profile: %w", err)
 	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepo) UpdateRole(userID int, role string) error {
+	result, err := r.db.Exec(
+		`
+		UPDATE users
+		SET role = ?
+		WHERE id = ?
+		`,
+		role,
+		userID,
+	)
+	if err != nil {
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		return errors.New("user tidak ditemukan")
+	}
+
 	return nil
 }
 
 func (r *userRepo) Delete(userID int) error {
-	res, err := r.db.Exec(`DELETE FROM users WHERE id = ?`, userID)
+	result, err := r.db.Exec(
+		`
+		DELETE FROM users
+		WHERE id = ?
+		`,
+		userID,
+	)
 	if err != nil {
 		return err
 	}
-	affected, _ := res.RowsAffected()
-	if affected == 0 {
-		return errors.New("user ID tidak ditemukan")
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
 	}
+
+	if affected == 0 {
+		return errors.New("user tidak ditemukan")
+	}
+
 	return nil
 }

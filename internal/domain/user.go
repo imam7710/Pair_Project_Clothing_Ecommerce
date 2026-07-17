@@ -37,6 +37,7 @@ type UserRepository interface {
 
 type AuthUseCase interface {
 	Login(email, password string) (*User, error)
+	Register(req CreateUserRequest) error // <-- TAMBAHKAN BARIS INI
 }
 
 type UserUseCase interface {

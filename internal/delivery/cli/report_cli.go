@@ -27,7 +27,9 @@ func (c *App) handleReports() {
 		orders, _ := c.reportUC.GetOrders()
 		fmt.Println("\n--- ORDER REPORTS ---")
 		for _, o := range orders {
-			fmt.Printf("Order #%d | Pembeli: %s | Total: Rp%.2f | Status: %s | Waktu: %s\n", o.OrderID, o.Pembeli, o.TotalAmount, o.Status, o.WaktuTransaksi)
+			// Tambahkan tampilan payment_method jika sudah ada di struct OrderReport
+			fmt.Printf("Order #%d | Pembeli: %s | Total: Rp%.2f | Status: %s | Metode: %s | Waktu: %s\n",
+				o.OrderID, o.Pembeli, o.TotalAmount, o.Status, o.PaymentMethod, o.WaktuTransaksi)
 		}
 	}
 }
